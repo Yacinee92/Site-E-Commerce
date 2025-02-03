@@ -1,4 +1,5 @@
 <?php
+
 session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -20,11 +21,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if (password_verify($password, $user['password'])) {
                 $_SESSION['username'] = $user['username'];
-                echo "<p style='color: green;'>Connexion réussie !</p>";
+                $_SESSION['loggedin'] = true;
                 header("Location: acceuil.php");
                 exit();
             } else {
-                echo "<p style='color: red;'>Mot de passe incorrect</p>";
+                echo "<p style='color: red;'>Mot de passe incorrect.</p>";
             }
         } else {
             echo "<p style='color: red;'>Email non trouvé.</p>";
@@ -34,8 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $conn = null;
 }
-
 ?>
+
 <!DOCTYPE HTML>
 <html lang="fr">
 <head>
@@ -43,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
 <body>
     <?php include 'navbar.php'; ?>
     <div class="signup-container">
@@ -56,10 +57,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <input type="password" id="password" name="password" required>
 
             <input type="submit" value="Se connecter">
-    </form>
+        </form>
 
-    <p>Pas encore inscrit ? <a href="inscription.php" class="register-link">Inscrivez-vous ici</a><p>
-    <div>
+        <p>Pas encore inscrit ? <a href="inscription.php" class="register-link">Inscrivez-vous ici</a></p>
+    </div>
     <?php include 'footer.php'; ?>
 </body>
 </html>

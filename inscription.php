@@ -5,41 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page d'inscription</title>
     <link rel="stylesheet" href="style.css">
-    </head>
+</head>
 <body>
     <?php include 'navbar.php'; ?>
     <div class="signup-container">
         <h2>Inscription</h2>
         <form action="" method="POST" onsubmit="return validateForm()">
-            <label for="username">Nom d'utilisateur : </label>
+            <label for="username">Nom d'utilisateur :</label>
             <input type="text" id="username" name="username" required>
 
-            <label for="email">Email : </label>
+            <label for="email">Email :</label>
             <input type="email" id="email" name="email" required>
 
-            <label for="password">Mot de passe : </label>
+            <label for="password">Mot de passe :</label>
             <input type="password" id="password" name="password" required>
 
-            <label for="confirm-passwword">Confirmer le mot de passe : </label>
+            <label for="confirm-password">Confirmer le mot de passe :</label>
             <input type="password" id="confirm-password" name="confirm-password" required>
-            
+
             <input type="submit" value="S'inscrire">
-</form>
-<p id="error-msg"></p>
-</div>
+        </form>
+        <p id="error-msg" style="color: red;"></p>
+    </div>
 
-<script>
-    function validateForm() {
-        var password = document.getElementById("password"). value;
-        var confirmPassword = document.getElementById("confirm-password").value;
-        var eroorMsg =  document.getElementById("error-msg");
+    <script>
+        function validateForm() {
+            var password = document.getElementById("password").value;
+            var confirmPassword = document.getElementById("confirm-password").value;
+            var errorMsg = document.getElementById("error-msg");
 
-        if (password !== confirmPassword) {
-            errorMsg.textContent = "Les mots de passe ne correspondent pas.";
-            return false;
+            if (password !== confirmPassword) {
+                errorMsg.textContent = "Les mots de passe ne correspondent pas.";
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
     </script>
 
     <?php
@@ -50,42 +50,42 @@
         $confirmPassword = htmlspecialchars(trim($_POST['confirm-password']));
 
         if ($password !== $confirmPassword) {
-            echo "<p style='color: red;'>Les mots de passes ne correspondent pas. </p>";
-            exit;
-        }
+            echo "<p style='color: red;'>Les mots de passe ne correspondent pas.</p>";
+        } else {
+            include 'bdd.php';
 
-        include 'bdd.php';
+            try {
+                $conn = new PDO("mysql:host=$servername;dbname=$dbname", $dbusername, $dbpassword);
+                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        try {
-            $conn = new PDO("mysql:host=$servername;dbname=$dbname", $dbusername, $dbpassword);
-            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-            $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
-            $stmt->bindParam(':email', $email);
-            $stmt->execute();
-
-            if ($stmt->rowCount() > 0) {
-                echo "<p style='color: red;'>Cet email est déja utilisé.</p>";
-            } else {
-                $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
-                $stmt->bindParam(':username', $username);
+                // Vérifier si l'email existe déjà
+                $stmt = $conn->prepare("SELECT * FROM users WHERE email = :email");
                 $stmt->bindParam(':email', $email);
-                $stmt->bindParam(':password', $hashedPassword);
- 
-                if ($stmt->execute()) {
-                    header("Location: connexion.php");
-                    exit ();
+                $stmt->execute();
+
+                if ($stmt->rowCount() > 0) {
+                    echo "<p style='color: red;'>Cet email est déjà utilisé.</p>";
                 } else {
-                    echo "<p style='color: red;'>Une erreur est survenue.</p>";
+                    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
+                    // Insérer les données
+                    $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (:username, :email, :password)");
+                    $stmt->bindParam(':username', $username);
+                    $stmt->bindParam(':email', $email);
+                    $stmt->bindParam(':password', $hashedPassword);
+
+                    if ($stmt->execute()) {
+                        header("Location: connexion.php");
+                        exit();
+                    } else {
+                        echo "<p style='color: red;'>Une erreur est survenue. Veuillez réessayer.</p>";
+                    }
                 }
-            }
-
-            } catch (PDOException  $e) {
+            } catch (PDOException $e) {
                 echo "Erreur : " . $e->getMessage();
             }
             $conn = null;
+        }
     }
     ?>
     <?php include 'footer.php'; ?>

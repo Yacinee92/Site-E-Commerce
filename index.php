@@ -31,18 +31,46 @@ if (isset($_POST['add_to_cart'])) {
 
 <!DOCTYPE html>
 <html lang="fr">
-<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catalogue de Produits</title>
     <link rel="stylesheet" href="style.css">
-    <style>
+
+
+<?php include 'navbar.php'; ?>
+
+<div class="catalogue-container">
+    <h1>Catalogue de Produits</h1>
+    <div class="product-list">
+    <?php foreach ($products as $product): ?>
+        <div class="product-item">
+            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+            <h2><?php echo htmlspecialchars($product['name']); ?></h2> <!-- Ajout du nom du produit ici -->
+            <p>Prix: €<?php echo htmlspecialchars($product['price']); ?></p>
+            <form method="post">
+                <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
+                <button type="submit" name="add_to_cart">Ajouter au Panier</button>
+            </form>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+</div>
+
+<a href="catalogue.php" class="checkout-button">Voir le Panier</a>
+
+<?php include 'footer.php'; ?>
+
+
+
+<style>
     
     h1 {
         text-align: center;
-        color: green;
+        color: black;
         font-size: 24px;
         margin-top: 20px;
+        
     }
 
     h2 {
@@ -127,38 +155,19 @@ if (isset($_POST['add_to_cart'])) {
         max-height: 150px;
     }
 
+/* .product-item h2 {
+    color: inherit;
+    text-decoration: none;
+}
+
+.product-item h2 a:hover {
+    color: red;
+} */
     
 
 
 </style>
 
-</head>
-<body>
-
-<?php include 'navbar.php'; ?>
-
-<h1>Catalogue de Produits</h1>
-<div class="product-list">
-    <?php foreach ($products as $product): ?>
-        <div class="product-item">
-            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-            <!--Pour mettre une videos
-            <video controls>
-                <source src="<?php echo htmlspecialchars($product['video']); ?>" type="video/mp4">
-                Votre navigateur ne supporte pas les vidéos.
-            </video> -->
-            <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-            <p>Prix: €<?php echo htmlspecialchars($product['price']); ?></p>
-            <form method="post">
-                <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
-                <button type="submit" name="add_to_cart">Ajouter au Panier</button>
-            </form>
-        </div>
-    <?php endforeach; ?>
-</div>
-<a href="catalogue.php" class="checkout-button">Voir le Panier</a>
-
-<?php include 'footer.php'; ?>
 
 </body>
 </html>

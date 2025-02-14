@@ -54,6 +54,10 @@ if (isset($_POST['clear_cart'])) {
             <?php endforeach; ?>
         </ul>
         <p class="cart-total">Total : €<?php echo $total; ?></p>
+        <form action="paiement.php" method="post">
+    <input type="hidden" name="total" value="<?php echo $total; ?>">
+    <button type="submit" class="checkout-btn">Procéder au paiement</button>
+</form>
         <form method="post" class="cart-actions">
             <button type="submit" name="clear_cart" class="clear-cart-btn">Vider le Panier</button>
         </form>
@@ -148,7 +152,7 @@ if (isset($_POST['clear_cart'])) {
         padding: 10px 20px;
         font-size: 16px;
         cursor: pointer;
-        border-radius: 5px;
+        border-radius: 20px;
         transition: background-color 0.3s ease;
     }
 
@@ -165,7 +169,7 @@ if (isset($_POST['clear_cart'])) {
         color: #fff;
         padding: 10px;
         text-decoration: none;
-        border-radius: 5px;
+        border-radius: 20px;
         font-size: 16px;
         transition: background-color 0.3s ease;
     }
@@ -218,6 +222,22 @@ p.total {
 button {
     margin-top: 15px;
 }
+
+.checkout-btn {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.checkout-btn:hover {
+    background-color: #218838;
+}
+
 
 </style>
 

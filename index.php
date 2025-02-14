@@ -128,6 +128,7 @@ if (isset($_POST['add_to_cart'])) {
         cursor: pointer;
         width: 100%;
         font-size: 16px;
+        border-radius: 20px;
     }
 
     .product-item button:hover {
@@ -143,7 +144,7 @@ if (isset($_POST['add_to_cart'])) {
         text-align: center;
         text-decoration: none;
         font-size: 16px;
-        border-radius: 5px;
+        border-radius: 20px;
     }
 
     .checkout-button:hover {

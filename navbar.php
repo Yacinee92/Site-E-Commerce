@@ -90,10 +90,10 @@ if (isset($_GET['logout'])) {
     <div class="navbar">
         <!-- Logo à gauche -->
         <div class="navbar-left">
-            <img src="images/penguin1.png" alt="Logo" class="navbar-logo">
+            <img src="images/logosite.png" alt="Logo" class="navbar-logo">
         </div>
 
-        <!-- Barre de recherche -->
+        <!-- Barre de recherche
         <div class="search-bar">
             <form action="search.php" method="get" style="display: flex; align-items: center;">
                 <input type="text" name="query" placeholder="Rechercher une vidéo..." required>
@@ -101,7 +101,7 @@ if (isset($_GET['logout'])) {
                     <img src="images/loupe.png" alt="Rechercher" class="search-icon">
                 </button>
             </form>
-        </div>
+        </div>-->
 
         <!-- Liens à droite -->
         <div class="navbar-right">
@@ -113,8 +113,8 @@ if (isset($_GET['logout'])) {
                 <a href="connexion.php">Se connecter</a>
                 <a href="inscription.php">S'inscrire</a>
             <?php else: ?>
-                <a href="index.php">Produits du site</a>
-                <a href="compte.php">Profil</a>
+                <a href="index.php">Produits</a>
+                <a href="compte.php">Mon compte</a>
                 <a href="?logout=true">Déconnexion</a>
             <?php endif; ?>
         </div>

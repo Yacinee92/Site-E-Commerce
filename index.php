@@ -40,7 +40,7 @@ if (isset($_POST['add_to_cart'])) {
 <?php include 'navbar.php'; ?>
 
 <div class="catalogue-container">
-    <h1>Catalogue de Produits</h1>
+    <h1 class="headerr">Catalogue de Produits</h1>
     <div class="product-list">
     <?php foreach ($products as $product): ?>
         <div class="product-item">
@@ -64,7 +64,20 @@ if (isset($_POST['add_to_cart'])) {
 
 
 <style>
-    
+    /* Style du titre principal */
+.headerr {
+    background: linear-gradient(to right, #1b4332, #145a32);
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+    font-size: 36px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
     h1 {
         text-align: center;
         color: black;
@@ -123,7 +136,7 @@ if (isset($_POST['add_to_cart'])) {
         outline: 0;
         padding: 10px;
         color: white;
-        background-color: #000;
+        background-color: #1b4332;
         text-align: center;
         cursor: pointer;
         width: 100%;
@@ -132,24 +145,25 @@ if (isset($_POST['add_to_cart'])) {
     }
 
     .product-item button:hover {
-        opacity: 0.7;
-    }
+    background-color: #145a32;
+}
 
-    .checkout-button {
-        display: inline-block;
-        padding: 10px 20px;
-        margin-top: 20px;
-        background-color: #28a745;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        font-size: 16px;
-        border-radius: 20px;
-    }
+    /* Bouton voir le panier */
+.checkout-button {
+    display: inline-block;
+    background-color: #145a32;
+    color: white;
+    padding: 12px 20px;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 25px;
+    margin-top: 20px;
+    transition: background 0.3s ease;
+}
 
-    .checkout-button:hover {
-        background-color: #218838;
-    }
+.checkout-button:hover {
+    background-color: #0f3e26;
+}
 
     img {
         max-width: 150px;

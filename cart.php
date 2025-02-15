@@ -56,13 +56,13 @@ if (isset($_POST['remove_item'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panier</title>
+    <title>Mon Panier</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <h1>Votre Panier</h1>
+    <h1 class="panier">Mon Panier</h1>
 
     <?php if (!empty($cart_items)): ?>
         <table>
@@ -93,7 +93,8 @@ if (isset($_POST['remove_item'])) {
                             <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                             <button type="submit" name="add_to_cart">Ajouter</button>
                         </form>
-                            <input type="post" name="item_id" value="<?php echo $item_id; ?>">
+                            <form method="post" style="display:inline;">
+                            <input type="hidden" name="item_id" value="<?php echo $item_id; ?>">
                             <button type="submit" name="remove_item">Supprimer</button>
                         </form>  
                     </td>
@@ -110,7 +111,7 @@ if (isset($_POST['remove_item'])) {
     </form>
 
     <?php else: ?>
-        <p>Votre panier est vide.</p>
+        <p style="text-align: center;" class="vide">Votre panier est vide.</p>
     <?php endif; ?>
 
     <a href="index.php" class="rac">Retourner au catalogue</a>
@@ -124,6 +125,35 @@ if (isset($_POST['remove_item'])) {
     padding: 0;
 }
 
+.panier {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1B4332;
+    padding: 15px 30px;
+    border-radius: 40px;
+    width: fit-content;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vide {
+        text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1B4332;
+    padding: 15px 30px;
+    border-radius: 40px;
+    width: fit-content;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
 h1 {
     text-align: center;
     color: #333;
@@ -170,7 +200,7 @@ a.rac {
     color: #fff;
     padding: 10px;
     text-decoration: none;
-    border-radius: 5px;
+    border-radius: 20px;
     }
 
     .rac:hover {

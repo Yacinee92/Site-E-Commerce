@@ -31,7 +31,7 @@ if (isset($_POST['clear_cart'])) {
 
 <?php include 'navbar.php'; ?>
 
-<h1>Votre Panier</h1>
+<h1 class="panier">Mon Panier 🛒</h1>
 
 <?php if (!empty($cart_items)): ?>
     <div class="cart-container">
@@ -78,7 +78,22 @@ if (isset($_POST['clear_cart'])) {
         padding: 0;
     }
 
-    h1 {
+  .panier {
+    text-align: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1B4332;
+    padding: 15px 30px;
+    border-radius: 40px;
+    width: fit-content;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    h1  {
         text-align: center;
         color: #333;
         margin: 20px 0;
@@ -180,9 +195,17 @@ if (isset($_POST['clear_cart'])) {
 
     .empty-cart {
         text-align: center;
-        color: #333;
-        font-size: 18px;
-        margin-top: 30px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #fff;
+    background-color: #1B4332;
+    padding: 15px 30px;
+    border-radius: 40px;
+    width: fit-content;
+    margin: 20px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     }
 
     ul {

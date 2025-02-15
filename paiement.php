@@ -31,9 +31,17 @@ $total = $_POST['total'];
         </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
-            <label for="nom">Nom :</label>
-            <input type="text" id="nom" name="nom" required>
-        </div>
+    <label for="nom">Nom :</label>
+    <input type="text" id="nom" name="nom" required oninput="validateName(event)">
+</div>
+
+<script>
+    function validateName(event) {
+        // Remplacer tout caractère non alphabétique par une chaîne vide
+        event.target.value = event.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
+    }
+</script>
+
 
         <div class="form-group" style="flex: 1 1 45%;">
             <label for="adresse">Adresse :</label>
@@ -42,12 +50,12 @@ $total = $_POST['total'];
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
             <label for="ville">Ville :</label>
-            <input type="text" id="ville" name="ville" required>
+            <input type="text" id="ville" name="ville" required oninput="validateName(event)">
         </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
             <label for="code_postal">Code Postal :</label>
-            <input type="text" id="code_postal" name="code_postal" required>
+            <input type="text" id="code_postal" name="code_postal" required  oninput="validateCardNumber(event)">
         </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
@@ -56,9 +64,30 @@ $total = $_POST['total'];
         </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
-            <label for="numero_carte">Numéro de carte :</label>
-            <input type="text" id="numero_carte" name="numero_carte" required placeholder="1234 5678 9012 3456">
-        </div>
+    <label for="numero_carte">Numéro de carte :</label>
+    <input type="text" id="numero_carte" name="numero_carte" required placeholder="1234 5678 9012 3456" oninput="validateCardNumber(event)">
+</div>
+
+<script>
+    function validateCardNumber(event) {
+        // Supprimer tout caractère non numérique
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+        // Limiter la longueur à 16 caractères
+        if (event.target.value.length > 16) {
+            event.target.value = event.target.value.slice(0, 16);
+        }
+    }
+
+    function validateCVV(event) {
+        // Supprimer tout caractère non numérique
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+        // Limiter la longueur à 3 caractères
+        if (event.target.value.length > 3) {
+            event.target.value = event.target.value.slice(0, 3);
+        }
+    }
+</script>
+
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
             <label for="expiration">Date d'expiration :</label>
@@ -66,9 +95,9 @@ $total = $_POST['total'];
         </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
-            <label for="cvv">CVV :</label>
-            <input type="text" id="cvv" name="cvv" required placeholder="123">
-        </div>
+    <label for="cvv">CVV :</label>
+    <input type="text" id="cvv" name="cvv" required placeholder="123" maxlength="3" oninput="validateCVV(event)">
+</div>
 
         <button type="submit" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1em;">Valider le paiement</button>
     </form>

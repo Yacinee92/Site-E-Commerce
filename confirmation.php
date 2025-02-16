@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paiement Réussi</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1"></script>
 </head>
 <body>
 
@@ -19,7 +20,7 @@
     </svg>
     <h1>Paiement Réussi</h1>
 </div>
-<p>Merci pour votre achat ! Votre commande a été enregistrée.</p>
+<p>Merci pour votre commande ! Vous recevrez bientôt un e-mail de confirmation. Vous pourrez suivre l’expédition de votre colis grâce au lien de suivi envoyé par e-mail. À bientôt ! 😄🎉</p>
 <a href="index.php" class="bouton-retour">Retour à la boutique</a>  
 
 <?php include 'footer.php'; ?>
@@ -65,6 +66,15 @@
             text-align: center;
         }
 </style>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        confetti({
+            particleCount: 500,  // Nombre de confettis
+            spread: 200,          // Dispersion
+            origin: { y: 0.6 }   // Position de départ (0 = haut, 1 = bas)
+        });
+    });
+</script>
 
 </body>
 </html>

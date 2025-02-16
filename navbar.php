@@ -43,6 +43,20 @@ if (isset($_GET['logout'])) {
             height: 50px; /* Adjusted to match the new navbar height */
         }
 
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-left a {
+            color: white;
+            text-decoration: none;
+            margin-left: 10px;
+            font-size: 24px;
+            font-family: Arial, Helvetica, sans-serif;
+            padding-top: 10px;
+        }
+
         .navbar-right {
             display: flex;
             align-items: center;
@@ -128,6 +142,7 @@ if (isset($_GET['logout'])) {
     <div class="navbar">
         <div class="navbar-left">
             <img src="images/logosite.png" alt="Logo" class="navbar-logo">
+            <a href="acceuil.php">iProtect</a>
         </div>
 
         <div class="hamburger" onclick="toggleMenu()">

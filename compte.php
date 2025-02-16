@@ -109,7 +109,7 @@ body {
     padding: 2rem;
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 108, 18, 0.74);
     box-sizing: border-box;
     position: relative;
     overflow: visible;
@@ -143,7 +143,7 @@ input[type="email"],
 input[type="password"] {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid black;
     border-radius: 5px;
     box-sizing: border-box;
     margin-bottom: 0.5rem;
@@ -154,7 +154,7 @@ input[type="submit"] {
     color: white;
     padding: 12px;
     border: none;
-    border-radius: 5px;
+    border-radius: 20px;
     cursor: pointer;
     font-size: 1rem;
     margin-top: 1rem;

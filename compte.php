@@ -88,4 +88,132 @@ $conn = null;
         ?>
     <?php include 'footer.php'; ?>
 </body>
+
+<style>
+    /* Reset et styles de base */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Container principal */
+.profil-container {
+    width: 90%;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-sizing: border-box;
+    position: relative;
+    overflow: visible;
+}
+
+/* Titre */
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+/* Formulaire */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    width: 100%;
+}
+
+label {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    display: block;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    margin-bottom: 0.5rem;
+}
+
+input[type="submit"] {
+    background-color: #1B4332;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+input[type="submit"]:hover {
+    background-color: #2d5a46;
+}
+
+/* Messages */
+p[style*="color: green"] {
+    background-color: #d4edda;
+    color: #155724 !important;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+p[style*="color: red"] {
+    background-color: #f8d7da;
+    color: #721c24 !important;
+    padding: 10px;
+    border-radius: 5px;
+    margin: 1rem 0;
+    text-align: center;
+}
+
+/* Media Queries */
+@media screen and (max-width: 768px) {
+    .profil-container {
+        width: 95%;
+        margin: 1rem auto;
+        padding: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .profil-container {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        padding: 1rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    input[type="submit"] {
+        padding: 10px;
+    }
+}
+
+/* Assure que le footer reste en bas */
+footer {
+    margin-top: auto;
+}
+</style>
 </html>

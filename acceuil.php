@@ -27,7 +27,8 @@ if (isset($_POST['logout'])) {
     
     <section class="hero-section">
     <div class="hero-content">
-        <h1>Protégez votre iPhone 16 avec style</h1>
+        <h1>IProtect</h1>
+        <h2>Protégez votre iPhone 16 avec style</h2>
         <p>Découvrez nos coques élégantes et résistantes</p>
         <a href="index.php" class="btn">Voir la boutique</a>
     </div>
@@ -78,21 +79,33 @@ body {
     align-items: center;
     height: 90vh; /* Ajustement pour ne pas trop dépasser */
     text-align: center;
-    padding: 20px;
-    background: linear-gradient(135deg,rgb(53, 180, 74),rgb(0, 219, 58)); /* Dégradé */
+    padding: 40px;
+    background: linear-gradient(135deg,rgb(20, 93, 32),rgb(0, 219, 58)); /* Dégradé */
     width: 100%;
 }
 
 .hero-content {
     max-width: 600px;
     color: white;
-}
+}   
 
-.hero-content h1 {
+.hero-content h2 {
     font-size: 2.5rem;
     margin-bottom: 10px;
+    animation: titre 2s ease 0s 1 normal none;
+    color: white;
 }
+@keyframes titre {
+  0% {
+	transform: scale(0.5);
+	transform-origin: 50% 0%;
+  }
 
+  100% {
+	transform: scale(1);
+	transform-origin: 50% 0%;
+  }
+}
 .hero-content p {
     font-size: 1.2rem;
     margin-bottom: 20px;
@@ -116,6 +129,33 @@ body {
     background:rgb(0, 196, 10);
     color: white;
     transform: scale(1.05);
+    animation: vibre 2s ease 0s infinite normal none;
+}
+
+@keyframes vibre {
+  0% {
+	transform: translate(0);
+  }
+
+  20% {
+	transform: translate(-2px, 2px);
+  }
+
+  40% {
+	transform: translate(-2px, -2px);
+  }
+
+  60% {
+	transform: translate(2px, 2px);
+  }
+
+  80% {
+	transform: translate(2px, -2px);
+  }
+
+  100% {
+	transform: translate(0);
+  }
 }
 
 /* CONTAINER PRINCIPAL - DISPOSITION EN COLONNE */
@@ -164,21 +204,6 @@ footer {
     width: 100%;
 }
 
-/* NAVBAR FIXE */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 90px; /* Ajuste la hauteur si besoin */
-    background: black;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    z-index: 1000; /* Pour s'assurer que la navbar est bien au-dessus */
-}
 
 /* Compense la hauteur de la navbar */
 body {

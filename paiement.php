@@ -16,6 +16,7 @@ $total = $_POST['total'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Paiement</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet"/>
 </head>
 <body>
 
@@ -26,22 +27,21 @@ $total = $_POST['total'];
         <input type="hidden" name="total" value="<?php echo htmlspecialchars($total); ?>">
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="margin: 0; font-size: 1.5em;">Paiement</h1>
+            <div style="display: flex; align-items: center;">
+                <h1 style="margin: 0; font-size: 1.5em;">Paiement</h1>
+                <div style="margin-left: 15px; display: flex; gap: 10px;">
+                    <i class="ri-visa-line" style="font-size: 2em; color: #1A1F71;"></i>
+                    <i class="ri-mastercard-line" style="font-size: 2em; color:rgb(235, 118, 0);"></i>
+                    <i class="ri-bank-card-fill" style="font-size: 2em; color:rgb(0, 108, 23);"></i>
+                </div>
+            </div>
             <p style="margin: 0; margin-left: 20px; font-size: 1em;"><strong>Total à payer : €<?php echo htmlspecialchars($total); ?></strong></p>
         </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
-    <label for="nom">Nom :</label>
-    <input type="text" id="nom" name="nom" required oninput="validateName(event)">
-</div>
-
-<script>
-    function validateName(event) {
-        // Remplacer tout caractère non alphabétique par une chaîne vide
-        event.target.value = event.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
-    }
-</script>
-
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" required oninput="validateName(event)">
+        </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
             <label for="adresse">Adresse :</label>
@@ -55,7 +55,8 @@ $total = $_POST['total'];
 
         <div class="form-group" style="flex: 1 1 45%;">
             <label for="code_postal">Code Postal :</label>
-            <input type="text" id="code_postal" name="code_postal" required  oninput="validateCardNumber(event)">
+            <input type="text" id="code_postal" name="code_postal" required maxlength="5"
+                oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 5);" pattern="\d{5}" title="Veuillez entrer 5 chiffres">
         </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
@@ -64,30 +65,9 @@ $total = $_POST['total'];
         </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
-    <label for="numero_carte">Numéro de carte :</label>
-    <input type="text" id="numero_carte" name="numero_carte" required placeholder="1234 5678 9012 3456" oninput="validateCardNumber(event)">
-</div>
-
-<script>
-    function validateCardNumber(event) {
-        // Supprimer tout caractère non numérique
-        event.target.value = event.target.value.replace(/[^0-9]/g, '');
-        // Limiter la longueur à 16 caractères
-        if (event.target.value.length > 16) {
-            event.target.value = event.target.value.slice(0, 16);
-        }
-    }
-
-    function validateCVV(event) {
-        // Supprimer tout caractère non numérique
-        event.target.value = event.target.value.replace(/[^0-9]/g, '');
-        // Limiter la longueur à 3 caractères
-        if (event.target.value.length > 3) {
-            event.target.value = event.target.value.slice(0, 3);
-        }
-    }
-</script>
-
+            <label for="numero_carte">Numéro de carte :</label>
+            <input type="text" id="numero_carte" name="numero_carte" required placeholder="1234-5678-9012-3456" oninput="formatCardNumber(event)">
+        </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
             <label for="expiration">Date d'expiration :</label>
@@ -95,65 +75,45 @@ $total = $_POST['total'];
         </div>
 
         <div class="form-group" style="flex: 1 1 45%;">
-    <label for="cvv">CVV :</label>
-    <input type="text" id="cvv" name="cvv" required placeholder="123" maxlength="3" oninput="validateCVV(event)">
-</div>
+            <label for="cvv">CVV :</label>
+            <input type="text" id="cvv" name="cvv" required placeholder="123" maxlength="3" oninput="validateCVV(event)">
+        </div>
 
         <button type="submit" style="width: 100%; margin-top: 20px; padding: 12px; font-size: 1em;">Valider le paiement</button>
     </form>
-</div>
 </div>
 
 <?php include 'footer.php'; ?>
 
 <style>
     body {
-    margin-top: 60px; /* Ajustez cette valeur en fonction de la hauteur de votre navbar */
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    padding: 0;
-}
+        margin-top: 60px;
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        padding: 0;
+    }
 
-#navbar {
-    position: fixed;
-    top: 0;
-    width: 100%;
-    background-color: #333;
-    color: white;
-    z-index: 1000; /* Assurez-vous que la navbar est au-dessus des autres éléments */
-    height: 60px; /* Ajustez cette valeur en fonction de la hauteur de votre navbar */
-}
+    #navbar {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: #333;
+        color: white;
+        z-index: 1000;
+        height: 60px;
+    }
 
-.container {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 20px;
-}
-
-form {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    flex: 1;
-    margin-right: 20px;
-}
-
-.summary-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    max-width: 300px;
-    flex: 1;
-}
-
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        padding: 20px;
+    }
 
     form {
         background: #fff;
         border-radius: 10px;
-        box-shadow: 0 4px 8px rgb(255, 179, 0);
+        box-shadow: 0 4px 8px rgb(255, 187, 0);
         display: flex;
         flex-wrap: wrap;
     }
@@ -192,26 +152,52 @@ form {
         background-color: #0056b3;
     }
 
-    /* width */
-::-webkit-scrollbar {
-    width: 10px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #121212; 
-  }
-   
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: rgb(255, 199, 86); 
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgb(192, 130, 50); 
-  }
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #121212; 
+    }
+     
+    ::-webkit-scrollbar-thumb {
+        background: rgb(37, 37, 37); 
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgb(71, 71, 71); 
+    }
 </style>
+
+<script>
+    function validateName(event) {
+        event.target.value = event.target.value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
+    }
+
+    function formatCardNumber(event) {
+        let value = event.target.value.replace(/\D/g, '');
+        
+        // Limiter à 16 chiffres
+        if (value.length > 16) {
+            value = value.slice(0, 16);
+        }
+        
+        // Ajouter des tirets tous les 4 chiffres
+        const groups = value.match(/.{1,4}/g);
+        if (groups) {
+            event.target.value = groups.join('-');
+        } else {
+            event.target.value = value;
+        }
+    }
+
+    function validateCVV(event) {
+        event.target.value = event.target.value.replace(/[^0-9]/g, '');
+        if (event.target.value.length > 3) {
+            event.target.value = event.target.value.slice(0, 3);
+        }
+    }
+</script>
 
 </body>
 </html>

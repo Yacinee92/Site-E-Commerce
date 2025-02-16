@@ -62,7 +62,7 @@ if (isset($_POST['remove_item'])) {
 <body>
     <?php include 'navbar.php'; ?>
 
-    <h1 class="panier">Mon Panier</h1>
+    <h1 class="panier">Mon Panier 🛒</h1>
 
     <?php if (!empty($cart_items)): ?>
         <table>
@@ -111,7 +111,7 @@ if (isset($_POST['remove_item'])) {
     </form>
 
     <?php else: ?>
-        <p style="text-align: center;" class="vide">Votre panier est vide.</p>
+        <p style="text-align: center;" class="vide">Oh non ton panier est vide 😓</p>
     <?php endif; ?>
 
     <a href="index.php" class="rac">Retourner au catalogue</a>

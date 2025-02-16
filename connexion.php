@@ -2,6 +2,8 @@
 
 session_start();
 
+$error_message = ''; // Variable pour stocker les messages d'erreur
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = htmlspecialchars(trim($_POST['email']));
     $password = htmlspecialchars(trim($_POST['password']));
@@ -25,13 +27,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 header("Location: acceuil.php");
                 exit();
             } else {
-                echo "<p style='color: red;'>Mot de passe incorrect.</p>";
+                $error_message = 'Mot de passe incorrect.'; // Message d'erreur pour mot de passe incorrect
             }
         } else {
-            echo "<p style='color: red;'>Email non trouvé.</p>";
+            $error_message = 'Email ou mot de passe incorrect. 😥'; // Message d'erreur pour email non trouvé
         }
     } catch (PDOException $e) {
-        echo "Erreur : " . $e->getMessage();
+        $error_message = "Erreur : " . $e->getMessage();
     }
     $conn = null;
 }
@@ -49,6 +51,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <?php include 'navbar.php'; ?>
     <div class="signup-container">
         <h2>Connexion</h2>
+
+        <?php if ($error_message): ?>
+            <div class="error-card">
+                <p style="color: red;"><?php echo $error_message; ?></p>
+            </div>
+        <?php endif; ?>
+
         <form action="connexion.php" method="POST">
             <label for="email">Email :</label>
             <input type="email" id="email" name="email" required>
@@ -63,4 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
     <?php include 'footer.php'; ?>
 </body>
+<style>
+    /* Style pour la card d'erreur */
+.error-card {
+    color: #721c24;
+    padding: 10px;
+
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+</style>
 </html>

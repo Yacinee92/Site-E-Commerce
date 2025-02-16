@@ -1,3 +1,12 @@
+<?php
+session_start();
+?>
+<html>
+<body>
+
+
+
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -59,8 +68,8 @@
             width: 100%;
             max-width: 500px;
             padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 30px;
+            box-shadow: 0 4px 20px rgb(0, 116, 8);
         }
 
         h2 {

@@ -35,7 +35,23 @@ $total = $_POST['total'];
                     <i class="ri-bank-card-fill" style="font-size: 2em; color:rgb(0, 108, 23);"></i>
                 </div>
             </div>
-            <p style="margin: 0; margin-left: 20px; font-size: 1em;"><strong>Total à payer : €<?php echo htmlspecialchars($total); ?></strong></p>
+            <p style="margin: 0; margin-left: 20px; font-size: 1em;"><strong>Total à payer : €<span id="totalPayer"><?php echo htmlspecialchars($total); ?></span></strong></p>
+        </div>
+
+        <!-- Ajout de l'option de livraison -->
+        <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
+            <label for="livraison">Type de livraison :</label>
+            <select id="livraison" name="livraison" required onchange="updateLivraisonDetails()">
+                <option value="standard">Livraison Standard (3.99€)</option>
+                <option value="acceleree">Livraison Accélérée (7€)</option>
+                <option value="retrait">Point de retrait (Gratuit)</option>
+            </select>
+        </div>
+
+        <!-- Détails dynamiques sur la livraison -->
+        <div id="livraisonDetails" style="margin-top: 20px;">
+            <p><strong>Prix de la livraison : <span id="prixLivraison">3.99€</span></strong></p>
+            <p><strong>Estimation de la livraison : <span id="delaiLivraison">6 à 7 jours</span></strong></p>
         </div>
 
         <div class="form-group" style="flex: 1 1 45%; margin-right: 5%;">
@@ -130,7 +146,7 @@ $total = $_POST['total'];
         font-size: 0.9em;
     }
 
-    input {
+    input, select {
         width: 100%;
         padding: 10px;
         margin-top: 5px;
@@ -150,22 +166,6 @@ $total = $_POST['total'];
 
     button:hover {
         background-color: #0056b3;
-    }
-
-    ::-webkit-scrollbar {
-        width: 10px;
-    }
-    
-    ::-webkit-scrollbar-track {
-        background: #121212; 
-    }
-     
-    ::-webkit-scrollbar-thumb {
-        background: rgb(37, 37, 37); 
-    }
-    
-    ::-webkit-scrollbar-thumb:hover {
-        background: rgb(71, 71, 71); 
     }
 </style>
 
@@ -196,6 +196,30 @@ $total = $_POST['total'];
         if (event.target.value.length > 3) {
             event.target.value = event.target.value.slice(0, 3);
         }
+    }
+
+    function updateLivraisonDetails() {
+        const livraison = document.getElementById("livraison").value;
+        const prixLivraison = document.getElementById("prixLivraison");
+        const delaiLivraison = document.getElementById("delaiLivraison");
+        const totalPayer = document.getElementById("totalPayer");
+
+        let livraisonPrix = 0;
+        if (livraison === "standard") {
+            livraisonPrix = 3.99;
+            delaiLivraison.textContent = "6 à 7 jours";
+        } else if (livraison === "acceleree") {
+            livraisonPrix = 7;
+            delaiLivraison.textContent = "1 à 2 jours";
+        } else if (livraison === "retrait") {
+            livraisonPrix = 0;
+            delaiLivraison.textContent = "3 à 4 jours";
+        }
+
+        prixLivraison.textContent = `${livraisonPrix}€`;
+
+        const totalAvecLivraison = parseFloat("<?php echo $total; ?>") + livraisonPrix;
+        totalPayer.textContent = totalAvecLivraison.toFixed(2);
     }
 </script>
 

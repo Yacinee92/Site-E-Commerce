@@ -74,14 +74,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </body>
 <style>
     /* Style pour la card d'erreur */
-.error-card {
-    color: #721c24;
-    padding: 10px;
+    .error-card {
+        color: #721c24;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+    }
 
-    border-radius: 5px;
-    margin-bottom: 20px;
-    text-align: center;
-}
+    /* Assurez-vous que le body prend toute la hauteur de la page */
+    html, body {
+        height: 100%;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
 
+    /* Le conteneur principal doit prendre tout l'espace disponible */
+    .signup-container {
+    }
+
+    /* Le footer doit rester en bas */
+    footer {
+        background-color: #f1f1f1;
+        text-align: center;
+        padding: 10px;
+        position: relative;
+        bottom: 0;
+        width: 100%;
+    }
 </style>
 </html>

@@ -57,12 +57,11 @@ if (isset($_POST['remove_item'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Panier</title>
-    <link rel="stylesheet" href="style.css">
+
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <h1 class="panier">Mon Panier 🛒</h1>
 
     <?php if (!empty($cart_items)): ?>
         <table>
@@ -111,10 +110,17 @@ if (isset($_POST['remove_item'])) {
     </form>
 
     <?php else: ?>
-        <p style="text-align: center;" class="vide">Oh non ton panier est vide 😓</p>
+        <div class="empty-cart-container">
+            <div class="empty-cart-content">
+                <i class="fas fa-shopping-cart empty-cart-icon"></i>
+                <h2>VOTRE PANIER EST VIDE</h2>
+                <p>Vous n'avez pas encore ajouté d'articles à votre panier.</p>
+                <a href="index.php" class="continue-shopping-btn">Retourner au catalogue</a>
+            </div>
+        </div>
     <?php endif; ?>
+</div>
 
-    <a href="index.php" class="rac">Retourner au catalogue</a>
     <?php include 'footer.php'; ?>
 
     <style>
@@ -140,20 +146,45 @@ if (isset($_POST['remove_item'])) {
     justify-content: center;
 }
 
-.vide {
+/* Panier vide */
+.empty-cart-container {
+        background-color: #fff;
+        border-radius: 5px;
+        padding: 150px 100px;
         text-align: center;
-    font-size: 32px;
-    font-weight: bold;
-    color: #fff;
-    background-color: #1B4332;
-    padding: 15px 30px;
-    border-radius: 40px;
-    width: fit-content;
-    margin: 20px auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     }
+    
+    .empty-cart-icon {
+        font-size: 60px;
+        color: #ccc;
+        margin-bottom: 20px;
+    }
+    
+    .empty-cart-content h2 {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+    
+    .empty-cart-content p {
+        color: #666;
+        margin-bottom: 30px;
+    }
+
+    .continue-shopping-btn {
+        display: inline-block;
+        background-color: #000;
+        color: #fff;
+        padding: 15px 30px;
+        text-decoration: none;
+        font-weight: 600;
+        border-radius: 25px;
+        transition: background-color 0.3s;
+    }
+    
+    .continue-shopping-btn:hover {
+        background-color: #333;
+    }
+    
 h1 {
     text-align: center;
     color: #333;
@@ -189,22 +220,6 @@ button {
 
 button:hover {
     background-color: #cc0000;
-}
-
-a.rac {
-    display: block;
-    width: 200px;
-    margin: 20px auto;
-    text-align: center;
-    background-color: #007bff;
-    color: #fff;
-    padding: 10px;
-    text-decoration: none;
-    border-radius: 20px;
-    }
-
-    .rac:hover {
-        background-color: #0056b3;
 }
 
 </style>

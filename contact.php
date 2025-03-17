@@ -119,7 +119,7 @@ session_start();
             margin-top: 25px;
         }
 
-        button {
+        .buttonn {
             background-color: #007bff;
             color: white;
             border: none;
@@ -259,7 +259,7 @@ session_start();
             <div class="h-captcha" data-sitekey="10000000-ffff-ffff-ffff-000000000001"></div>
 
             <div class="button-group">
-                <button type="submit">Envoyer</button>
+                <button type="submit" class="buttonn">Envoyer</button>
                 <a href="acceuil.php" class="return-button">Retour à l'accueil</a>
             </div>
         </form>

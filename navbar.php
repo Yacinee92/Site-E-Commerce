@@ -160,22 +160,23 @@ if (isset($_GET['logout'])) {
         .main-menu {
             position: fixed;
             top: 70px;
-            left: 0;
-            width: 100%;
-            height: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
             background-color: white;
             overflow: hidden;
-            transition: height 0.3s ease-in-out;
-            z-index: 999;
+            transition: left 0.5s ease-in-out, opacity 0.5s ease-in-out;
+            z-index: 1001;
             box-shadow: 0 5px 5px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             align-items: center;
+            opacity: 0;
         }
 
         .main-menu.active {
-            height: auto;
-            padding: 20px 0;
+            left: 0;
+            opacity: 1;
         }
 
         .main-menu a {

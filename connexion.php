@@ -69,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
 
         <p>Pas encore inscrit ? <a href="inscription.php" class="register-link">Inscrivez-vous ici</a></p>
+        <p>Oublie de mot de passe ? <a href="reset_password_request.php" class="forgot-password-link">Cliqué ici</a></p>
     </div>
     <?php include 'footer.php'; ?>
 </body>

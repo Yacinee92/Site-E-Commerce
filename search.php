@@ -24,8 +24,6 @@ try {
 } catch (PDOException $e) {
     die("Erreur de connexion : " . $e->getMessage());
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -34,467 +32,369 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Résultats de recherche</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="images/logosite.png">
 </head>
 <body>
 <?php include 'navbar.php'; ?>
 
+<div class="catalogue-container">
+    <div class="sidebar">
+        <h2>Recherche</h2>
+        <form method="get" action="search.php">
+            <input type="text" name="query" value="<?= htmlspecialchars($search) ?>" placeholder="Rechercher un produit..." class="search-input">
+            <button type="submit" class="filter-button">Rechercher</button>
+        </form>
+    </div>
 
-<div class="container" style="margin-top: 80px; padding: 20px;">
-    <h1>Résultats pour "<?= htmlspecialchars($search) ?>"</h1>
-    
-    <div class="product-list">
+    <div class="main-content">
+        <h1>Résultats pour "<?= htmlspecialchars($search) ?>"</h1>
+        
         <?php if (!empty($results)): ?>
-            <?php foreach ($results as $product): ?>
-                <div class="product-item">
-                    <?php if (!empty($product['image'])): ?>
-                        <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
-                    <?php endif; ?>
-                    
-                    <?php if (!empty($product['video'])): ?>
-                        <video controls>
-                            <source src="<?= htmlspecialchars($product['video']) ?>" type="video/mp4">
-                            Votre navigateur ne supporte pas les videos.
-                        </video>
-                    <?php endif; ?>
-                    
-                    <h2>
-                        <a href="product-detail.php?id=<?= htmlspecialchars($product['id']) ?>">
-                            <?= htmlspecialchars($product['name']) ?>
-                        </a>
-                    </h2>
-                    <p>Prix: €<?= htmlspecialchars($product['price']) ?></p>
-                    <form method="post" action="add_to_cart.php">
-                        <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
-                        <button type="submit" name="add_to_cart">Ajouter au Panier</button>
-                    </form>
-                </div>
-            <?php endforeach; ?>
+            <div class="product-grid">
+                <?php foreach ($results as $product): ?>
+                    <div class="product-card">
+                        <div class="product-image">
+                            <a href="product-detail.php?id=<?= htmlspecialchars($product['id']) ?>">
+                                <?php if (!empty($product['image'])): ?>
+                                    <img src="<?= htmlspecialchars($product['image']) ?>" alt="<?= htmlspecialchars($product['name']) ?>">
+                                <?php elseif (!empty($product['video'])): ?>
+                                    <video controls>
+                                        <source src="<?= htmlspecialchars($product['video']) ?>" type="video/mp4">
+                                        Votre navigateur ne supporte pas les vidéos.
+                                    </video>
+                                <?php endif; ?>
+                            </a>
+                            <form method="post" class="favorites-form" data-product-id="<?= htmlspecialchars($product['id']) ?>">
+                                <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
+                                <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                                <button type="button" name="add_to_favorites" class="favorites-button"
+                                        <?php echo (isset($_SESSION['favorites']) && in_array($product['id'], $_SESSION['favorites'])) ? 'data-favorited="true"' : ''; ?>>
+                                    <i class="<?php echo (isset($_SESSION['favorites']) && in_array($product['id'], $_SESSION['favorites'])) ? 'fas' : 'far'; ?> fa-heart"></i>
+                                </button>
+                            </form>
+                        </div>
+                        <div class="product-details">
+                            <h3><a href="product-detail.php?id=<?= htmlspecialchars($product['id']) ?>"><?= htmlspecialchars($product['name']) ?></a></h3>
+                            <p class="price">€<?= htmlspecialchars($product['price']) ?></p>
+                            <form method="post" action="add_to_cart.php" class="cart-form">
+                                <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
+                                <input type="hidden" name="csrf_token" value="<?= isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '' ?>">
+                                <button type="submit" name="add_to_cart" class="add-to-cart">Ajouter au panier</button>
+                            </form>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
         <?php else: ?>
             <p>Aucun résultat trouvé pour votre recherche.</p>
         <?php endif; ?>
     </div>
 </div>
+
+<?php include 'footer.php'; ?>
+
+<script>
+    // Toast notification handling (for consistency with index.php)
+    document.addEventListener('DOMContentLoaded', function() {
+        const favoriteButtons = document.querySelectorAll('.favorites-button');
+        
+        favoriteButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const form = this.closest('.favorites-form');
+                const productId = form.dataset.productId;
+                const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+                const heartIcon = this.querySelector('i');
+                const isFavorited = this.dataset.favorited === 'true';
+                this.disabled = true;
+
+                fetch('index.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `ajax_toggle_favorites=1&product_id=${productId}&csrf_token=${csrfToken}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.action === 'added') {
+                            heartIcon.className = 'fas fa-heart';
+                            this.dataset.favorited = 'true';
+                            showToast(data.message, true);
+                        } else if (data.action === 'removed') {
+                            heartIcon.className = 'far fa-heart';
+                            this.dataset.favorited = 'false';
+                            showToast(data.message, true);
+                        }
+                    } else {
+                        showToast(data.message, false);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error);
+                    showToast('Erreur lors de l\'opération', false);
+                })
+                .finally(() => {
+                    this.disabled = false;
+                });
+            });
+        });
+
+        // Toast notification function
+        function showToast(message, isSuccess = true) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification' + (isSuccess ? ' success' : ' error');
+            toast.innerHTML = `<i class="fas fa-heart"></i><span>${message}</span><button class="toast-close">×</button>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+            toast.querySelector('.toast-close').addEventListener('click', () => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            });
+        }
+    });
+</script>
+
 <style>
-    /* Barre de défilement */
-::-webkit-scrollbar {
-    width: 10px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-    background: #121212; 
-}
-   
-/* Handle */
-::-webkit-scrollbar-thumb {
-    background: rgb(38, 38, 38); 
-}
-  
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-    background: rgb(38, 38, 38); 
-}
-
-/* Styles généraux */
-body {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
-    margin: 0;
-    padding-top: 60px;
-}
-
-.container {
-    margin-top: 80px;
-    padding: 20px;
-}
-
-/* Style pour les curseurs de prix */
-.price-slider {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 5px 0;
-}
-
-.price-values {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    font-size: 16px;
-    font-weight: 500;
-}
-
-input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 8px;
-    background: #d3d3d3;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    border-radius: 5px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #1b4332;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #1b4332;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-/* Style pour les cases à cocher */
-input[type="checkbox"] {
-    appearance: none;
-    width: 15px;
-    height: 15px;
-    border: 2px solid #1b4332;
-    border-radius: 4px;
-    outline: none;
-    cursor: pointer;
-    position: relative;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-input[type="checkbox"]:checked {
-    background-color: #1b4332;
-    border-color: #1b4332;
-}
-
-input[type="checkbox"]:checked::after {
-    content: '✔';
-    color: white;
-    font-size: 14px;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
-
-/* Boutons spécifiques */
-button#updatePrice {
-    background: url('images/loupev.png') no-repeat center center;
-    background-size: contain;
-    border: none;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    position: relative;
-    top: -5px;
-}
-
-button#updatePrice:hover {
-    transform: scale(1.05);
-}
-
-button#resetFilters {
-    background: url('images/remove.png') no-repeat center center;
-    background-size: contain;
-    border: none;
-    width: 30px;
-    height: 30px;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-    position: relative;
-    top: -5px;
-}
-
-button#resetFilters:hover {
-    transform: scale(1.05);
-}
-
-/* Labels */
-label {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 20px;
-}
-
-/* En-tête du catalogue */
-.headerr {
-    background: linear-gradient(to right, #1b4332, #145a32);
-    color: white;
-    text-align: center;
-    padding: 18px 15px;
-    font-size: 28px;
-    font-weight: 600;
-    text-transform: uppercase;
-    border-radius: 16px;
-    margin: 15px auto 25px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    width: 90%;
-    max-width: 800px;
-    display: block;
-    margin-top: 20px;
-}
-
-/* Grille de produits */
-.product-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-    margin-top: 20px;
-}
-
-/* Carte de produit */
-.product-item {
-    background-color: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    max-width: 220px;
-    margin: 0 auto;
-    text-decoration: none;
-    color: inherit;
-    position: relative; /* Pour positionner les favoris */
-}
-
-.product-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Liens dans les produits */
-.product-item a {
-    text-decoration: none;
-    color: inherit;
-    display: block;
-    transition: color 0.2s ease;
-}
-
-.product-item a:hover {
-    color: #0f3e26;
-}
-
-/* Images des produits */
-.product-item img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    object-position: center;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.product-item a img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    object-position: center;
-    border-bottom: 1px solid #f0f0f0;
-    transition: opacity 0.2s ease;
-}
-
-.product-item a:hover img {
-    opacity: 0.9;
-}
-
-/* Vidéos des produits */
-.product-item video {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-/* Contenu du produit */
-.product-info {
-    padding: 12px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Titre du produit */
-.product-item h2 {
-    font-size: 16px;
-    margin: 5px 0;
-    color: #1b4332;
-    height: 40px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    font-weight: 500;
-}
-
-.product-item h2 a {
-    text-decoration: none;
-    color: #1b4332;
-    transition: color 0.2s ease;
-}
-
-.product-item h2 a:hover {
-    color: #0f3e26;
-}
-
-/* Prix du produit */
-.product-item p {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin: 8px 0;
-}
-
-/* Bouton d'ajout au panier */
-.product-item button {
-    border: none;
-    outline: 0;
-    padding: 10px;
-    color: white;
-    background-color: #1b4332;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
-    font-size: 14px;
-    border-radius: 20px;
-    transition: all 0.2s ease;
-    margin-top: auto;
-    font-weight: 500;
-}
-
-.product-item button:hover {
-    background-color: #0f3e26;
-    transform: scale(1.02);
-}
-
-/* Conteneur de boutons */
-.button-container {
-    display: flex;
-    gap: 10px;
-    margin-top: auto;
-}
-
-.cart-form {
-    flex: 1;
-}
-
-/* Boutons de favoris */
-.favorites-form {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-}
-
-.favorites-button {
-    border: none;
-    outline: 0;
-    padding: 10px;
-    color: white;
-    background-color: transparent;
-    text-align: center;
-    cursor: pointer;
-    font-size: 20px;
-    transition: all 0.2s ease;
-}
-
-.favorites-button i {
-    color: #0f3e26;
-}
-
-.favorites-button:hover i {
-    color: rgb(172, 0, 0);
-    transform: scale(1.2);
-}
-
-/* Boutons d'action */
-.action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-}
-
-.checkout-button, .favorites-button-link {
-    display: block;
-    width: max-content;
-    margin: 0 auto 40px;
-    background-color: #145a32;
-    color: white;
-    padding: 12px 24px;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 30px;
-    transition: all 0.2s ease;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(20, 90, 50, 0.15);
-    font-weight: 500;
-}
-
-.checkout-button:hover, .favorites-button-link:hover {
-    background-color: #0f3e26;
-    transform: scale(1.03);
-}
-
-.favorites-button-link {
-    background-color: #0f3e26;
-    box-shadow: 0 2px 5px rgba(44, 120, 115, 0.15);
-}
-
-/* Styles responsifs */
-@media (max-width: 768px) {
-    .product-list {
-        grid-template-columns: repeat(2, 1fr);
+    /* General Styles */
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding-top: 60px;
+        color: #333;
     }
-    
-    .headerr {
-        font-size: 24px;
-        padding: 15px;
-        width: 95%;
-    }
-}
 
-@media (max-width: 480px) {
-    .product-list {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-    
-    .product-item {
-        max-width: 100%;
-    }
-    
-    .product-item img {
-        height: 150px;
-    }
-    
-    .button-container {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
+    /* Toast Notification */
+    .toast-notification {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #1a1a1a;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        display: flex;
         align-items: center;
         gap: 10px;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
     }
-}
-    </style>
+
+    .toast-notification.show {
+        transform: translateX(0);
+    }
+
+    .toast-notification.error {
+        background-color: #d32f2f;
+    }
+
+    .toast-notification i {
+        font-size: 16px;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+    }
+
+    /* Catalogue Container */
+    .catalogue-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar h2 {
+        font-size: 20px;
+        margin-bottom: 20px;
+        color: #2e7d32;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+
+    .filter-button {
+        width: 100%;
+        padding: 10px;
+        background: #2e7d32;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .filter-button:hover {
+        background: #1b5e20;
+    }
+
+    /* Main Content */
+    .main-content {
+        flex: 1;
+    }
+
+    .main-content h1 {
+        font-size: 24px;
+        color: #2e7d32;
+        margin-bottom: 20px;
+        text-align: left;
+    }
+
+    /* Product Grid */
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+
+    .product-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.2s;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+    }
+
+    .product-image {
+        position: relative;
+    }
+
+    .product-image img, .product-image video {
+        width: 100%;
+        height: 200px;
+        object-fit: contain;
+        padding: 10px;
+    }
+
+    .product-details {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .product-details h3 {
+        font-size: 16px;
+        margin: 0 0 10px;
+        color: #333;
+        height: 40px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .product-details a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #2e7d32;
+        margin-bottom: 10px;
+    }
+
+    .add-to-cart {
+        width: 100%;
+        padding: 10px;
+        background: #1a1a1a;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .add-to-cart:hover {
+        background: #333;
+    }
+
+    .favorites-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: white;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+    }
+
+    .favorites-button i {
+        color: #333;
+        font-size: 16px;
+    }
+
+    .favorites-button[data-favorited="true"] i {
+        color: #d32f2f;
+    }
+
+    .favorites-button:hover i {
+        color: #d32f2f;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .catalogue-container {
+            flex-direction: column;
+        }
+
+        .sidebar {
+            width: 100%;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        }
+    }
+
+    @media (max-width: 480px) {
+        .product-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .product-image img, .product-image video {
+            height: 150px;
+        }
+    }
 </style>
-<?php include 'footer.php'; ?>
-</body>
-</html>

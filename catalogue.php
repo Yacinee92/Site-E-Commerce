@@ -10,6 +10,11 @@ $products = [
     ["id" => 6, "name" => "Produit 6", "image" => "images/coque6.jpg", "price" => 59, "description" => "Coque téléphone"],
     ["id" => 7, "name" => "Produit 7", "image" => "images/coque7.jpg", "price" => 59, "description" => "Coque téléphone"],
     ["id" => 8, "name" => "Produit 8", "image" => "images/coqueb.jpg", "price" => 59, "description" => "Coque téléphone"],
+    ["id" => 9, "name" => "Produit 9", "image" => "images/coques.jpg", "price" => 30, "description" => "Coque téléphone"],
+    ["id" => 10, "name" => "Produit 10", "image" => "images/coques1.jpg", "price" => 45, "description" => "Coque téléphone"],
+    ["id" => 11, "name" => "Produit 11", "image" => "images/coqueperso.jpg", "price" => 50, "description" => "Coque téléphone"],
+    ["id" => 12, "name" => "Produit 11", "image" => "images/coques2.jpg", "price" => 35, "description" => "Coque téléphone"],
+    ["id" => 13, "name" => "Produit 11", "image" => "images/coques3.jpg", "price" => 40, "description" => "Coque téléphone"],
 ];
 
 $cart_items = isset($_SESSION['cart']) ? $_SESSION['cart'] : [];

@@ -1,18 +1,13 @@
 <?php
 session_start();
 ?>
-<html>
-<body>
-
-
-
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact</title>
+    <title>Contactez-nous</title>
     <script src="https://web3forms.com/client/script.js" async defer></script>
     <style>
         /* Reset et styles de base */
@@ -22,247 +17,280 @@ session_start();
             box-sizing: border-box;
         }
 
-        /* width */
-::-webkit-scrollbar {
-    width: 10px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #121212; 
-  }
-   
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: rgb(38, 38, 38); 
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgb(38, 38, 38); 
-  }
-
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
             min-height: 100vh;
-            position: relative;
-            padding: 80px 0 60px 0; /* Espace pour navbar et footer */
+            display: flex;
+            flex-direction: column;
+            line-height: 1.6;
         }
 
-        /* Container principal */
-        .container {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: calc(100vh - 140px); /* Hauteur totale moins navbar et footer */
+        /* Conteneur principal */
+        .contact-wrapper {
+            flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 2rem;
         }
 
-        /* Style du formulaire */
-        form {
-            background-color: #fff;
+        .contact-container {
+            max-width: 700px;
             width: 100%;
-            max-width: 500px;
-            padding: 30px;
-            border-radius: 30px;
-            box-shadow: 0 4px 20px rgb(0, 116, 8);
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            animation: slideUp 0.6s ease-out;
         }
 
-        h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #333;
+        /* Animation d'entrée */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section de gauche (formulaire) */
+        .contact-form {
+            padding: 2.5rem;
+        }
+
+        .contact-form h2 {
             font-size: 1.8rem;
-        }
-
-        /* Groupe de champs */
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
             font-weight: 600;
-            color: #444;
-            font-size: 0.95rem;
+            color: #1a1a1a;
+            margin-bottom: 1.5rem;
         }
 
-        input, 
-        textarea {
+        .form-field {
+            margin-bottom: 1.2rem;
+        }
+
+        .form-field label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-field input,
+        .form-field textarea {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
+            border: 1px solid #e0e0e0;
             border-radius: 8px;
             font-size: 1rem;
-            transition: border-color 0.3s ease;
+            background: #fafafa;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        input:focus, 
-        textarea:focus {
+        .form-field input:focus,
+        .form-field textarea:focus {
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
             outline: none;
-            border-color:rgb(0, 111, 41);
-            box-shadow: 0 0 0 2px rgba(0, 255, 76, 0.1);
+            background: #fff;
         }
 
-        textarea {
+        .form-field textarea {
             resize: vertical;
-            min-height: 120px;
+            min-height: 100px;
+        }
+
+        /* Section de droite (informations) */
+        .contact-info {
+            background: linear-gradient(135deg,#FAFEFD 0%, #C9E8CA 100%);
+            color: black;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .contact-info h3 {
+            font-size: 1.4rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .contact-info p {
+            font-size: 0.9rem;
+            line-height: 1.8;
+            opacity: 0.9;
         }
 
         /* Boutons */
-        .button-group {
-            margin-top: 25px;
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
         }
 
-        .buttonn {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            width: 100%;
+        .btn {
+            flex: 1;
+            padding: 12px;
             border-radius: 25px;
             font-size: 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-bottom: 15px;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-
-        .return-button {
-            display: block;
-            background-color: #155632;
-            color: white;
-            text-decoration: none;
-            padding: 12px 20px;
-            border-radius: 25px;
+            font-weight: 500;
             text-align: center;
-            transition: background-color 0.3s ease;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
         }
 
-        .return-button:hover {
-            background-color: #0a2b19;
+        .btn-primary {
+            background: #007aff;
+            color: #fff;
+            border: none;
         }
 
-        /* Media Queries */
-        @media screen and (max-width: 768px) {
-            .container {
-                padding: 15px;
+        .btn-primary:hover {
+            background: #005bb5;
+            transform: scale(1.02);
+        }
+
+        .btn-primary:disabled {
+            background: #b0b0b0;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #fff;
+            color: #007aff;
+            border: 1px solid #007aff;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f7fa;
+            transform: scale(1.02);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .contact-container {
+                grid-template-columns: 1fr;
             }
 
-            form {
-                padding: 20px;
+            .contact-info {
+                text-align: center;
             }
 
-            h2 {
+            .contact-form, .contact-info {
+                padding: 1.5rem;
+            }
+
+            .contact-form h2 {
                 font-size: 1.5rem;
-                margin-bottom: 20px;
             }
 
-            input, 
-            textarea {
-                padding: 10px;
-            }
-        }
-
-        @media screen and (max-width: 480px) {
-            body {
-                padding: 60px 0 40px 0;
-            }
-
-            .container {
-                padding: 10px;
-            }
-
-            form {
-                padding: 15px;
-                border-radius: 10px;
-            }
-
-            h2 {
-                font-size: 1.3rem;
-                margin-bottom: 15px;
-            }
-
-            label {
-                font-size: 0.9rem;
-            }
-
-            input, 
-            textarea,
-            button,
-            .return-button {
-                font-size: 0.95rem;
-                padding: 10px 15px;
-            }
-
-            .button-group {
-                margin-top: 20px;
-            }
-        }
-
-        /* Styles pour les appareils très petits */
-        @media screen and (max-width: 320px) {
-            form {
-                padding: 12px;
-            }
-
-            h2 {
+            .contact-info h3 {
                 font-size: 1.2rem;
             }
+        }
 
-            input, 
-            textarea {
-                padding: 8px;
+        @media (max-width: 480px) {
+            .contact-wrapper {
+                padding: 1rem;
             }
+
+            .contact-container {
+                border-radius: 0;
+            }
+
+            .contact-form, .contact-info {
+                padding: 1rem;
+            }
+
+            .contact-form h2 {
+                font-size: 1.3rem;
+            }
+
+            .contact-info h3 {
+                font-size: 1.1rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 10px;
+            }
+        }
+
+        /* Scrollbar personnalisée */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f5f7fa;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b0b0b0;
+            border-radius: 8px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #909090;
         }
     </style>
 </head>
 <body>
     <?php include 'navbar.php'; ?>
 
-    <div class="container">
-        <form action="https://api.web3forms.com/submit" method="POST">
-            <h2>Contactez-nous</h2>
+    <div class="contact-wrapper">
+        <div class="contact-container">
+            <!-- Section de gauche (formulaire) -->
+            <div class="contact-form">
+                <h2>Contactez-nous</h2>
+                <form action="https://api.web3forms.com/submit" method="POST">
+                    <input type="hidden" name="access_key" value="4fd4bb4c-a788-4913-b95a-daa6fcc645f3">
+                    <input type="hidden" name="from_name" value="Site Web">
+                    <input type="hidden" name="replyto" value="email">
 
-            <input type="hidden" name="access_key" value="4fd4bb4c-a788-4913-b95a-daa6fcc645f3">
-            <input type="hidden" name="from_name" value="Site Web">
-            <input type="hidden" name="replyto" value="email">
+                    <div class="form-field">
+                        <label for="nom">Nom</label>
+                        <input type="text" name="name" id="nom" required>
+                    </div>
 
-            <div class="form-group">
-                <label for="nom">Nom :</label>
-                <input type="text" name="name" id="nom" required>
+                    <div class="form-field">
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="sujet">Sujet</label>
+                        <input type="text" name="subject" id="sujet" required>
+                    </div>
+
+                    <div class="form-field">
+                        <label for="message">Message</label>
+                        <textarea name="message" id="message" required></textarea>
+                    </div>
+
+                    <div class="h-captcha" data-sitekey="10000000-ffff-ffff-ffff-000000000001"></div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Envoyer</button>
+                        <a href="acceuil.php" class="btn btn-secondary">Retour</a>
+                    </div>
+                </form>
             </div>
 
-            <div class="form-group">
-                <label for="email">Email :</label>
-                <input type="email" name="email" id="email" required>
+            <!-- Section de droite (informations) -->
+            <div class="contact-info">
+                <h3>Nous sommes là pour vous aider</h3>
+                <p>Notre équipe est disponible pour répondre à toutes vos questions. Remplissez le formulaire et nous vous contacterons dans les plus brefs délais.</p>
             </div>
-
-            <div class="form-group">
-                <label for="sujet">Sujet :</label>
-                <input type="text" name="subject" id="sujet" required>
-            </div>
-
-            <div class="form-group">
-                <label for="message">Message :</label>
-                <textarea name="message" id="message" rows="5" required></textarea>
-            </div>
-
-            <div class="h-captcha" data-sitekey="10000000-ffff-ffff-ffff-000000000001"></div>
-
-            <div class="button-group">
-                <button type="submit" class="buttonn">Envoyer</button>
-                <a href="acceuil.php" class="return-button">Retour à l'accueil</a>
-            </div>
-        </form>
+        </div>
     </div>
 
     <?php include 'footer.php'; ?>

@@ -1,6 +1,8 @@
 <?php
 session_start();
 
+
+
 // Vérifier si l'utilisateur est connecté
 if (!isset($_SESSION['username'])) {
     $_SESSION['username'] = "Visiteur"; // Valeur par défaut si non connecté
@@ -87,19 +89,19 @@ if (isset($_POST['logout'])) {
         <h2>Nos Catégories</h2>
         <div class="categories-grid">
             <div class="category-item">
-                <img src="images/category1.jpg" alt="Catégorie 1" class="category-image">
-                <h3>Coques Classiques</h3>
-                <a href="category1.php" class="btn">Voir les produits</a>
+            <img src="images/coques.jpg" alt="Catégorie 1" class="category-image" style="width: 80%; height: auto;">
+            <h3>Coques Samsung</h3>
+            <a href="product-detail.php?id=9" class="btn">Voir les produits</a>
             </div>
             <div class="category-item">
-                <img src="images/category2.jpg" alt="Catégorie 2" class="category-image">
-                <h3>Coques Résistantes</h3>
-                <a href="category2.php" class="btn">Voir les produits</a>
+                <img src="images/coque5.jpg" alt="Catégorie 2" class="category-image">
+                <h3>Coques Apple</h3>
+                <a href="product-detail.php?id=5" class="btn">Voir les produits</a>
             </div>
             <div class="category-item">
-                <img src="images/category3.jpg" alt="Catégorie 3" class="category-image">
+                <img src="images/coqueperso.jpg" alt="Catégorie 3" class="category-image " style="width: 75%; height: auto;">
                 <h3>Coques Transparentes</h3>
-                <a href="category3.php" class="btn">Voir les produits</a>
+                <a href="product-detail.php?id=11" class="btn">Voir les produits</a>
             </div>
         </div>
     </div>
@@ -150,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <style>
+    
 .categories-section {
     background: #fff;
     padding: 40px;

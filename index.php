@@ -12,21 +12,25 @@ try {
     $minPrice = $priceResult['min_price'] ?? 0;
     $maxPrice = $priceResult['max_price'] ?? 35.00;
 
-    $filters = [];
     $sql = "SELECT id, name, image, video, price, type FROM products WHERE 1=1";
+    $params = [];
 
     $filterConditions = [];
-    if (isset($_GET['filter_php'])) {
-        $filterConditions[] = "type = 'PHP'";
+    if (isset($_GET['filter_apple'])) {
+        $filterConditions[] = "type = :apple";
+        $params[':apple'] = 'apple';
     }
     if (isset($_GET['filter_bleu'])) {
-        $filterConditions[] = "type = 'bleu'";
+        $filterConditions[] = "type = :bleu";
+        $params[':bleu'] = 'bleu';
     }
-    if (isset($_GET['filter_js'])) {
-        $filterConditions[] = "type = 'JS'";
+    if (isset($_GET['filter_samsung'])) {
+        $filterConditions[] = "type = :samsung";
+        $params[':samsung'] = 'samsung';
     }
-    if (isset($_GET['filter_mysql'])) {
-        $filterConditions[] = "type = 'MySQL'";
+    if (isset($_GET['filter_transparent'])) {
+        $filterConditions[] = "type = :transparent";
+        $params[':transparent'] = 'transparent';
     }
 
     if (!empty($filterConditions)) {
@@ -34,14 +38,18 @@ try {
     }    
 
     if (isset($_GET['price_min']) && isset($_GET['price_max'])) {
-        $min_price = $_GET['price_min'];
-        $max_price = $_GET['price_max'];
-        $sql .= " AND price BETWEEN $min_price AND $max_price";
-    }
-
-
+        $min_price = filter_var($_GET['price_min'], FILTER_VALIDATE_FLOAT);
+        $max_price = filter_var($_GET['price_max'], FILTER_VALIDATE_FLOAT);
         
-    $stmt = $pdo->query("$sql");
+        if ($min_price !== false && $max_price !== false) {
+            $sql .= " AND price BETWEEN :min_price AND :max_price";
+            $params[':min_price'] = $min_price;
+            $params[':max_price'] = $max_price;
+        }
+    }
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     echo "Erreur de connexion : " . htmlspecialchars($e->getMessage());
@@ -49,20 +57,60 @@ try {
 }
 
 // Gestion ajout au panier
-if (isset($_POST['add_to_cart'])) {
+if (isset($_POST['add_to_cart']) && isset($_POST['product_id']) && isset($_POST['csrf_token'])) {
+    if (!isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        header("Location: index.php?error=csrf");
+        exit;
+    }
+    
     $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT);
     if ($product_id !== false) {
         if (!isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];
         }
         $_SESSION['cart'][] = $product_id;
-        header("Location: catalogue.php");
+        header("Location: index.php?action=added_to_cart");
         exit;
     }
 }
 
-// Gestion ajout aux favoris
-if (isset($_POST['add_to_favorites'])) {
+// Gestion AJAX pour les favoris (ajout/suppression)
+if (isset($_POST['ajax_toggle_favorites']) && isset($_POST['product_id']) && isset($_POST['csrf_token'])) {
+    header('Content-Type: application/json');
+    
+    if (!isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        echo json_encode(['success' => false, 'message' => 'Erreur de sécurité']);
+        exit;
+    }
+    
+    $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT);
+    if ($product_id !== false) {
+        if (!isset($_SESSION['favorites'])) {
+            $_SESSION['favorites'] = [];
+        }
+        
+        $key = array_search($product_id, $_SESSION['favorites']);
+        if ($key !== false) {
+            unset($_SESSION['favorites'][$key]);
+            $_SESSION['favorites'] = array_values($_SESSION['favorites']);
+            echo json_encode(['success' => true, 'message' => 'Retiré des favoris', 'action' => 'removed']);
+        } else {
+            $_SESSION['favorites'][] = $product_id;
+            echo json_encode(['success' => true, 'message' => 'Ajouté aux favoris', 'action' => 'added']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Erreur lors de l\'opération']);
+    }
+    exit;
+}
+
+// Gestion ajout aux favoris (fallback pour les navigateurs sans JS)
+if (isset($_POST['add_to_favorites']) && isset($_POST['product_id']) && isset($_POST['csrf_token'])) {
+    if (!isset($_SESSION['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        header("Location: index.php?error=csrf");
+        exit;
+    }
+    
     $product_id = filter_input(INPUT_POST, 'product_id', FILTER_VALIDATE_INT);
     if ($product_id !== false) {
         if (!isset($_SESSION['favorites'])) {
@@ -71,9 +119,14 @@ if (isset($_POST['add_to_favorites'])) {
         if (!in_array($product_id, $_SESSION['favorites'])) {
             $_SESSION['favorites'][] = $product_id;
         }
-        header("Location: index.php");
+        header("Location: index.php?action=added_to_favorites");
         exit;
     }
+}
+
+// Générer un token CSRF pour la session
+if (!isset($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 ?>
 
@@ -88,570 +141,513 @@ if (isset($_POST['add_to_favorites'])) {
 </head>
 <body>
     <?php include 'navbar.php'; ?>
+    
+    <div id="toast-notification" class="toast-notification">
+        <i class="fas fa-heart"></i>
+        <span id="toast-message"></span>
+        <button id="toast-close">&times;</button>
+    </div>
+
     <div class="catalogue-container">
-        <h1 class="headerr">Catalogue de Produits</h1>
-        <form method="get" id="filterForm">
-    <label>
-        <input type="checkbox" name="filter_php" <?php echo isset($_GET['filter_php']) ? 'checked' : ''; ?>>
-        En PHP&nbsp;&nbsp;&nbsp;
-        <input type="checkbox" name="filter_bleu" <?php echo isset($_GET['filter_bleu']) ? 'checked' : ''; ?>>
-        En Bleu&nbsp;&nbsp;&nbsp;
-        <input type="checkbox" name="filter_js" <?php echo isset($_GET['filter_js']) ? 'checked' : ''; ?>>
-        En JS&nbsp;&nbsp;&nbsp;
-        <input type="checkbox" name="filter_mysql" <?php echo isset($_GET['filter_mysql']) ? 'checked' : ''; ?>>
-        En MySQL&nbsp;&nbsp;&nbsp;
-        <button type="submit" id="updatePrice"></button>
-        <button type="button" id="resetFilters"></button>
+        <div class="sidebar">
+            <h2>Filtres</h2>
+            <form method="get" id="filterForm">
+                <div class="filter-section">
+                    <h3>Marque</h3>
+                    <label><input type="checkbox" name="filter_apple" <?php echo isset($_GET['filter_apple']) ? 'checked' : ''; ?>> Apple</label>
+                    <label><input type="checkbox" name="filter_samsung" <?php echo isset($_GET['filter_samsung']) ? 'checked' : ''; ?>> Samsung</label>
+                    <label><input type="checkbox" name="filter_bleu" <?php echo isset($_GET['filter_bleu']) ? 'checked' : ''; ?>> Bleu</label>
+                    <label><input type="checkbox" name="filter_transparent" <?php echo isset($_GET['filter_transparent']) ? 'checked' : ''; ?>> Transparent</label>
+                </div>
+                <div class="filter-section">
+                    <h3>Prix</h3>
+                    <div class="price-slider">
+                        <input type="range" name="price_min" min="<?php echo $minPrice; ?>" max="<?php echo $maxPrice; ?>" 
+                            value="<?php echo isset($_GET['price_min']) ? $_GET['price_min'] : $minPrice; ?>" step="0.01" id="minPrice">
+                        <input type="range" name="price_max" min="<?php echo $minPrice; ?>" max="<?php echo $maxPrice; ?>" 
+                            value="<?php echo isset($_GET['price_max']) ? $_GET['price_max'] : $maxPrice; ?>" step="0.01" id="maxPrice">
+                    </div>
+                    <div class="price-values">
+                        <span>Prix: <span id="price-min"><?php echo isset($_GET['price_min']) ? $_GET['price_min'] : $minPrice; ?></span>€ - 
+                              <span id="price-max"><?php echo isset($_GET['price_max']) ? $_GET['price_max'] : $maxPrice; ?></span>€</span>
+                    </div>
+                </div>
+                <button type="submit" class="filter-button">Appliquer</button>
+                <button type="button" id="resetFilters" class="reset-button">Réinitialiser</button>
+            </form>
+        </div>
 
-
-    </label>
-    <div class="price-slider">
-        <input type="range" name="price_min" min="<?php echo $minPrice; ?>" max="<?php echo $maxPrice; ?>" 
-            value="<?php echo isset($_GET['price_min']) ? $_GET['price_min'] : $minPrice; ?>" step="1" 
-            style="width: 25%;" id="minPrice">
-        <input type="range" name="price_max" min="<?php echo $minPrice; ?>" max="<?php echo $maxPrice; ?>" 
-            value="<?php echo isset($_GET['price_max']) ? $_GET['price_max'] : $maxPrice; ?>" step="1" 
-            style="width: 25%;" id="maxPrice">
-    </div>
-    <div class="price-values">
-        <span>Prix min : <span id="price-min"><?php echo isset($_GET['price_min']) ? $_GET['price_min'] : $minPrice; ?></span></span>
-        <span>Prix max : <span id="price-max"><?php echo isset($_GET['price_max']) ? $_GET['price_max'] : $maxPrice; ?></span></span>
-    </div>
-</form>
-
-        
-        
-        
-        <div class="product-list">
-            <?php foreach ($products as $product): ?>
-            <div class="product-item">
-                <a href="product-detail.php?id=<?php echo htmlspecialchars($product['id']); ?>">
-                    <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
-                </a>
-                <div class="product-info">
-                    <a href="product-detail.php?id=<?php echo htmlspecialchars($product['id']); ?>">
-                        <h2><?php echo htmlspecialchars($product['name']); ?></h2>
-                    </a>
-                    <p>Prix: €<?php echo htmlspecialchars($product['price']); ?></p>
-                    <div class="button-container">
-                        <form method="post" class="cart-form">
+        <div class="main-content">
+            <h1>Catalogue</h1>
+            <?php if (isset($_GET['action']) && $_GET['action'] === 'added_to_cart'): ?>
+                <div class="alert success">Produit ajouté au panier !</div>
+            <?php endif; ?>
+            <?php if (isset($_GET['action']) && $_GET['action'] === 'added_to_favorites'): ?>
+                <div class="alert success">Produit ajouté aux favoris !</div>
+            <?php endif; ?>
+            
+            <div class="product-grid">
+                <?php foreach ($products as $product): ?>
+                <div class="product-card">
+                    <div class="product-image">
+                        <a href="product-detail.php?id=<?php echo htmlspecialchars($product['id']); ?>">
+                            <img src="<?php echo htmlspecialchars($product['image']); ?>" alt="<?php echo htmlspecialchars($product['name']); ?>">
+                        </a>
+                        <form method="post" class="favorites-form" data-product-id="<?php echo htmlspecialchars($product['id']); ?>">
                             <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
-                            <button type="submit" name="add_to_cart">Ajouter au Panier</button>
-                        </form>
-                        <form method="post" class="favorites-form">
-                            <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
-                            <button type="submit" name="add_to_favorites" class="favorites-button">
-                                <i class="far fa-heart"></i> Favoris
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="button" name="add_to_favorites" class="favorites-button"
+                                    <?php echo (isset($_SESSION['favorites']) && in_array($product['id'], $_SESSION['favorites'])) ? 'data-favorited="true"' : ''; ?>>
+                                <i class="<?php echo (isset($_SESSION['favorites']) && in_array($product['id'], $_SESSION['favorites'])) ? 'fas' : 'far'; ?> fa-heart"></i>
                             </button>
                         </form>
                     </div>
+                    <div class="product-details">
+                        <h3><a href="product-detail.php?id=<?php echo htmlspecialchars($product['id']); ?>"><?php echo htmlspecialchars($product['name']); ?></a></h3>
+                        <p class="price">€<?php echo htmlspecialchars($product['price']); ?></p>
+                        <form method="post" class="cart-form">
+                            <input type="hidden" name="product_id" value="<?php echo htmlspecialchars($product['id']); ?>">
+                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                            <button type="submit" name="add_to_cart" class="add-to-cart">Ajouter au panier</button>
+                        </form>
+                    </div>
                 </div>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
-        </div>
 
-            <!-- <div class="action-buttons">
-            <a href="cart.php" class="checkout-button">Voir le Panier</a>
-            <a href="favorites.php" class="favorites-button-link">Voir mes Favoris</a>
-        </div>-->
+            <div class="action-buttons">
+                <a href="cart.php" class="action-button">Voir le panier</a>
+                <a href="favorites.php" class="action-button secondary">Mes favoris</a>
+            </div>
+        </div>
     </div>
 
     <?php include 'footer.php'; ?>
+
     <script>
+        // Toast notification handling
+        document.addEventListener('DOMContentLoaded', function() {
+            const toast = document.getElementById('toast-notification');
+            const closeBtn = document.getElementById('toast-close');
+            closeBtn.addEventListener('click', function() {
+                toast.classList.remove('show');
+            });
+        });
+
+        // Price sliders handling
         const minSlider = document.getElementById('minPrice');
-const maxSlider = document.getElementById('maxPrice');
-const minPriceLabel = document.getElementById('price-min');
-const maxPriceLabel = document.getElementById('price-max');
+        const maxSlider = document.getElementById('maxPrice');
+        const minPriceLabel = document.getElementById('price-min');
+        const maxPriceLabel = document.getElementById('price-max');
 
-minSlider.addEventListener('input', function () {
-    if (parseInt(minSlider.value) > parseInt(maxSlider.value)) {
-        maxSlider.value = minSlider.value;
-    }
-    minPriceLabel.textContent = minSlider.value;
-});
+        minSlider.addEventListener('input', function () {
+            if (parseFloat(minSlider.value) > parseFloat(maxSlider.value)) {
+                maxSlider.value = minSlider.value;
+            }
+            minPriceLabel.textContent = parseFloat(minSlider.value).toFixed(2);
+        });
 
-maxSlider.addEventListener('input', function () {
-    if (parseInt(maxSlider.value) < parseInt(minSlider.value)) {
-        minSlider.value = maxSlider.value;
-    }
-    maxPriceLabel.textContent = maxSlider.value;
-});
+        maxSlider.addEventListener('input', function () {
+            if (parseFloat(maxSlider.value) < parseFloat(minSlider.value)) {
+                minSlider.value = maxSlider.value;
+            }
+            maxPriceLabel.textContent = parseFloat(maxSlider.value).toFixed(2);
+        });
 
+        // Reset filters
+        document.getElementById('resetFilters').addEventListener('click', function () {
+            window.location.href = window.location.pathname;
+        });
 
-    document.getElementById('resetFilters').addEventListener('click', function () {
-        window.location.href = window.location.pathname; // Recharge la page sans paramètres
-    });
-
-        
-    </script>
-</body>
-</html>
-
-
-
-
-<style>
-    
-::-webkit-scrollbar {
-    width: 10px;
-  }
-  
-  /* Track */
-  ::-webkit-scrollbar-track {
-    background: #121212; 
-  }
-   
-  /* Handle */
-  ::-webkit-scrollbar-thumb {
-    background: rgb(38, 38, 38); 
-  }
-  
-  /* Handle on hover */
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgb(38, 38, 38); 
-  }
-
-/* Styles généraux */
-body {
-    font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-    background-color: #f8f9fa;
-    color: #333;
-    margin: 0;
-    padding-top: 60px;}
-
-.price-slider {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 5px 0;
-}
-
-.price-values {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    font-size: 16px;
-    font-weight: 500;
-    
-}
-
-/* Style pour les curseurs de prix */
-input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 8px;
-    background: #d3d3d3;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-    border-radius: 5px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 20px;
-    height: 20px;
-    background: #1b4332;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
-    background: #1b4332;
-    cursor: pointer;
-    border-radius: 50%;
-    box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
-}
-    /* Style pour les boutons à cocher */
-    input[type="checkbox"] {
-        appearance: none;
-        width: 15px;
-        height: 15px;
-        border: 2px solid #1b4332;
-        border-radius: 4px;
-        outline: none;
-        cursor: pointer;
-        position: relative;
-        transition: background-color 0.2s ease, border-color 0.2s ease;
-    }
-
-    input[type="checkbox"]:checked {
-        background-color: #1b4332;
-        border-color: #1b4332;
-    }
-
-    input[type="checkbox"]:checked::after {
-        content: '✔';
-        color: white;
-        font-size: 14px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-    }
-    button#updatePrice {
-        background: url('images/loupev.png') no-repeat center center;
-        background-size: contain;
-        border: none;
-        width: 30px; /* Adjust the size as needed */
-        height: 30px; /* Adjust the size as needed */
-        cursor: pointer;
-        transition: transform 0.2s ease;
-        position: relative;
-        top: -5px;
-    }
-
-    button#updatePrice:hover {
-        transform: scale(1.05);
-    }
-
-    label {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        font-size: 16px;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 20px;
-    }
-    .product-item a {
-        text-decoration: none;
-        color: inherit;
-        display: block;
-        transition: color 0.2s ease;
-    }
-
-    .product-item a:hover {
-        color: #0f3e26; /* Légère variation de couleur au survol pour indiquer qu'il s'agit d'un lien */
-    }
-
-    button#resetFilters {
-        background: url('images/remove.png') no-repeat center center;
-        background-size: contain;
-        border: none;
-        width: 30px; /* Adjust the size as needed */
-        height: 30px; /* Adjust the size as needed */
-        cursor: pointer;
-        transition: transform 0.2s ease;
-        position: relative;
-        top: -5px;
-    }
-
-    button#resetFilters:hover {
-        transform: scale(1.05);
-    }
-
-/* Ajuster le conteneur du catalogue pour qu'il soit en dessous de la navbar */
-.catalogue-container {
-    padding-top: 20px;
-}
-
-/* Container principal */
-.catalogue-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-/* En-tête du catalogue - Corrigé pour affichage correct */
-.headerr {
-    background: linear-gradient(to right, #1b4332, #145a32);
-    color: white;
-    text-align: center;
-    padding: 18px 15px;
-    font-size: 28px;
-    font-weight: 600;
-    text-transform: uppercase;
-    border-radius: 16px;
-    margin: 15px auto 25px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    width: 90%;
-    max-width: 800px;
-    display: block;
-    margin-top: 20px;
-}
-
-/* Grille de produits - Cadres plus petits */
-.product-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
-    margin-bottom: 30px;
-    margin-top: 20px;
-}
-
-/* Carte de produit - Cadres plus petits */
-.product-item {
-    background-color: white;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    overflow: hidden;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    max-width: 220px;
-    margin: 0 auto;
-    text-decoration: none; /* Supprime le soulignement de tous les liens dans les cartes produit */
-    color: inherit; /* Garde la couleur par défaut du texte */
-
-}
-
-.product-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.1);
-}
-
-/* Image du produit - Rognée */
-.product-item img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    object-position: center;
-    border-bottom: 1px solid #f0f0f0;
-}
-
-.product-item a img {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-    object-position: center;
-    border-bottom: 1px solid #f0f0f0;
-    transition: opacity 0.2s ease;
-}
-
-.product-item a:hover img {
-    opacity: 0.9; /* Effet léger au survol de l'image */
-}
-
-/* Contenu du produit */
-.product-info {
-    padding: 12px;
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Titre du produit */
-.product-item h2 {
-    font-size: 16px;
-    margin: 5px 0;
-    color: #1b4332;
-    height: 40px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    font-weight: 500;
-}
-
-.product-item h2 a {
-    text-decoration: none;
-    color: #1b4332;
-    transition: color 0.2s ease;
-}
-
-.product-item h2 a:hover {
-    color: #0f3e26; /* Légère variation de couleur au survol pour indiquer qu'il s'agit d'un lien */
-}
-
-
-
-/* Prix du produit */
-.product-item p {
-    font-size: 16px;
-    font-weight: 600;
-    color: #333;
-    margin: 8px 0;
-}
-
-/* Bouton d'ajout au panier - Style Apple */
-.product-item button {
-    border: none;
-    outline: 0;
-    padding: 10px;
-    color: white;
-    background-color: #1b4332;
-    text-align: center;
-    cursor: pointer;
-    width: 100%;
-    font-size: 14px;
-    border-radius: 20px; /* Style Apple arrondi */
-    transition: all 0.2s ease;
-    margin-top: auto;
-    font-weight: 500;
-}
-
-.product-item button:hover {
-    background-color: #0f3e26;
-    transform: scale(1.02);
-}
-
-/* Bouton voir le panier - Style Apple */
-.checkout-button {
-    display: block;
-    width: max-content;
-    margin: 0 auto 40px;
-    background-color: #145a32;
-    color: white;
-    padding: 12px 24px;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 30px; /* Style Apple plus arrondi */
-    transition: all 0.2s ease;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(20, 90, 50, 0.15);
-    font-weight: 500;
-}
-
-.checkout-button:hover {
-    background-color: #0f3e26;
-    transform: scale(1.03);
-}
-
-.button-container {
-    display: flex;
-    gap: 10px;
-    margin-top: auto;
-    }
-
-    .cart-form {
-    flex: 1;
-    }
-
-    .favorites-form {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    }
-
-    .favorites-button {
-    border: none;
-    outline: 0;
-    padding: 10px;
-    color: white;
-    background-color: transparent;
-    text-align: center;
-    cursor: pointer;
-    font-size: 20px;
-    transition: all 0.2s ease;
-    }
-
-    .favorites-button i {
-    color: #0f3e26;
-    }
-
-    .favorites-button:hover i {
-    color:rgb(172, 0, 0);
-    transform: scale(1.2);
-    }
-
-    /* Style pour les liens d'action en bas */
-    .action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-    }
-
-    .favorites-button-link {
-    display: block;
-    width: max-content;
-    background-color: #0f3e26;
-    color: white;
-    padding: 12px 24px;
-    text-decoration: none;
-    font-size: 16px;
-    border-radius: 30px;
-    transition: all 0.2s ease;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(44, 120, 115, 0.15);
-    font-weight: 500;
-    }
-
-    .favorites-button-link:hover {
-    background-color: #0f3e26;
-    transform: scale(1.03);
-    }
-
-    /* Ajustements responsifs */
-    @media (max-width: 480px) {
-        .button-container {
-            flex-direction: column;
-            gap: 5px;
+        // Show toast notification
+        function showToast(message, isSuccess = true) {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            toastMessage.textContent = message;
+            toast.className = 'toast-notification show' + (isSuccess ? ' success' : ' error');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
-        .action-buttons {
-            flex-direction: column;
+        // AJAX handling for favorites
+        document.addEventListener('DOMContentLoaded', function() {
+            const favoriteButtons = document.querySelectorAll('.favorites-button');
+            
+            favoriteButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const form = this.closest('.favorites-form');
+                    const productId = form.dataset.productId;
+                    const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+                    const heartIcon = this.querySelector('i');
+                    const isFavorited = this.dataset.favorited === 'true';
+                    this.disabled = true;
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `ajax_toggle_favorites=1&product_id=${productId}&csrf_token=${csrfToken}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.action === 'added') {
+                                heartIcon.className = 'fas fa-heart';
+                                this.dataset.favorited = 'true';
+                                showToast(data.message, true);
+                            } else if (data.action === 'removed') {
+                                heartIcon.className = 'far fa-heart';
+                                this.dataset.favorited = 'false';
+                                showToast(data.message, true);
+                            }
+                        } else {
+                            showToast(data.message, false);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur:', error);
+                        showToast('Erreur lors de l\'opération', false);
+                    })
+                    .finally(() => {
+                        this.disabled = false;
+                    });
+                });
+            });
+        });
+    </script>
+
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding-top: 60px;
+            color: #333;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #004aad;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            display: flex;
             align-items: center;
             gap: 10px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
         }
 
-        .product-list {
-            grid-template-columns: 1fr;
-            gap: 10px;
+        .toast-notification.show {
+            transform: translateX(0);
         }
 
-        .product-item img {
-            height: 120px;
+        .toast-notification.error {
+            background-color: #d32f2f;
         }
 
-        .headerr {
-            font-size: 20px;
-            padding: 10px;
-            width: 100%;
+        .toast-notification i {
+            font-size: 16px;
         }
+
+        #toast-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Catalogue Container */
         .catalogue-container {
-            padding: 10px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #004aad;
+        }
+
+        .filter-section {
+            margin-bottom: 20px;
+        }
+
+        .filter-section h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .filter-section label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .filter-section input[type="checkbox"] {
+            margin-right: 8px;
+            accent-color: #004aad;
         }
 
         .price-slider {
-            flex-direction: row;
-            align-items: center;
-        }
-
-        .price-slider input {
-            width: 45%;
-            margin: 0 5px;
+            margin: 10px 0;
         }
 
         .price-values {
-            flex-direction: row;
-            align-items: center;
+            font-size: 14px;
+            text-align: center;
         }
 
-        .price-values span {
-            margin: 0 10px;
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #ddd;
+            border-radius: 3px;
+            outline: none;
         }
 
-        label {
-            flex-direction: row;
-            align-items: center;
-        }
-        }
-
-        /* Styles responsifs */
-        @media (max-width: 768px) {
-        .product-list {
-            grid-template-columns: repeat(2, 1fr);
+        input[type="range"]::-webkit-slider-thumb {
+            width: 16px;
+            height: 16px;
+            background: #004aad;
+            border-radius: 50%;
+            cursor: pointer;
         }
 
-        .headerr {
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            background: #004aad;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .filter-button, .reset-button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .filter-button {
+            background: #004aad;
+            color: white;
+        }
+
+        .filter-button:hover {
+            background: #003087;
+        }
+
+        .reset-button {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .reset-button:hover {
+            background: #e0e0e0;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+        }
+
+        .main-content h1 {
             font-size: 24px;
+            color: #004aad;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .alert.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            position: relative;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            padding: 10px;
+        }
+
+        .product-details {
             padding: 15px;
-            width: 95%;
+            text-align: center;
         }
+
+        .product-details h3 {
+            font-size: 16px;
+            margin: 0 0 10px;
+            color: #333;
+            height: 40px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
         }
 
+        .product-details a {
+            text-decoration: none;
+            color: inherit;
+        }
 
-</style>
+        .price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #004aad;
+            margin-bottom: 10px;
+        }
 
+        .add-to-cart {
+            width: 100%;
+            padding: 10px;
+            background:rgb(0, 0, 0);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
 
-</body>
-</html>
+        .add-to-cart:hover {
+            background:rgb(41, 41, 41);
+        }
+
+        .favorites-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .favorites-button i {
+            color: #333;
+            font-size: 16px;
+        }
+
+        .favorites-button[data-favorited="true"] i {
+            color: #d32f2f;
+        }
+
+        .favorites-button:hover i {
+            color: #d32f2f;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .action-button {
+            padding: 10px 20px;
+            background: #004aad;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .action-button.secondary {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .action-button:hover {
+            background: #003087;
+        }
+
+        .action-button.secondary:hover {
+            background: #e0e0e0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .catalogue-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .product-image img {
+                height: 150px;
+            }
+        }
+    </style>
